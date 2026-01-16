@@ -3,268 +3,326 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geographical Norway | Official Technical Store</title>
+    <title>Geographical Norway | Official Store</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         [v-cloak] { display: none; }
         body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .slide-enter-active, .slide-leave-active { transition: transform 0.3s ease; }
-        .slide-enter-from, .slide-leave-to { transform: translateX(100%); }
-        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+        
+        /* Smooth transitions for Mega Menu and Cart */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
+        
+        .slide-enter-active, .slide-leave-active { transition: transform 0.3s ease-in-out; }
+        .slide-enter-from, .slide-leave-to { transform: translateX(100%); }
+
+        .mega-menu-shadow { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        
+        /* Custom scrollbar for cart */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #000; }
     </style>
 </head>
 <body class="bg-white">
 
-<div id="app" v-cloak class="relative">
+<div id="app" v-cloak @mouseleave="activeMegaMenu = null">
     
-    <!-- MOBILE MENU SIDEBAR -->
-    <transition name="fade">
-        <div v-if="isMobileMenuOpen" @click="isMobileMenuOpen = false" class="fixed inset-0 bg-black/60 z-[60] backdrop-blur-sm"></div>
-    </transition>
-    <transition name="slide">
-        <div v-if="isMobileMenuOpen" class="fixed top-0 left-0 w-[80%] max-w-sm h-full bg-white z-[70] p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-8">
-                <span class="font-black text-xl">MENU</span>
-                <button @click="isMobileMenuOpen = false"><i data-lucide="x"></i></button>
-            </div>
-            <div class="flex flex-col space-y-6">
-                <button v-for="cat in categories" :key="cat" 
-                    @click="selectedCategory = cat; isMobileMenuOpen = false"
-                    class="text-left text-lg font-bold uppercase tracking-widest"
-                    :class="selectedCategory === cat ? 'text-red-600' : 'text-gray-800'">
-                    {{ cat }}
-                </button>
-            </div>
-        </div>
-    </transition>
-
-    <!-- NAVIGATION BAR -->
-    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-4 md:px-8">
-            <div class="flex justify-between items-center h-16 md:h-20">
-                <!-- Mobile Trigger -->
-                <button @click="isMobileMenuOpen = true" class="md:hidden p-2">
-                    <i data-lucide="menu"></i>
-                </button>
-
-                <!-- Brand Logo -->
-                <div class="flex-shrink-0 cursor-pointer" @click="resetFilters">
-                    <h1 class="text-xl md:text-2xl font-black tracking-tighter italic">
-                        GEOGRAPHICAL<span class="text-red-600">NORWAY</span>
-                    </h1>
-                </div>
-
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex space-x-8 uppercase text-[12px] font-bold tracking-widest">
-                    <button v-for="cat in categories" :key="cat" 
-                        @click="selectedCategory = cat"
-                        :class="selectedCategory === cat ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:text-black'"
-                        class="pb-1 transition-all">
-                        {{ cat }}
+    <!-- NAVIGATION (FARFETCH STYLE) -->
+    <nav class="fixed top-0 w-full z-[100] bg-white border-b border-gray-200">
+        <!-- TOP TIER: Gender Selection & Brand Logo -->
+        <div class="border-b border-gray-100 h-10 md:h-12">
+            <div class="max-w-[1600px] mx-auto px-4 md:px-8 flex justify-between items-center h-full">
+                <div class="flex space-x-6 h-full items-center">
+                    <button v-for="type in genderTypes" :key="type"
+                        @click="currentGender = type"
+                        class="text-[11px] font-bold uppercase tracking-widest transition-all h-full border-b-2"
+                        :class="currentGender === type ? 'text-black border-black' : 'text-gray-400 border-transparent hover:text-black'">
+                        {{ type }}
                     </button>
                 </div>
-
-                <!-- Icons & Search -->
-                <div class="flex items-center space-x-3 md:space-x-5">
-                    <div class="hidden lg:flex items-center bg-gray-100 rounded-full px-4 py-1.5">
-                        <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
-                        <input v-model="searchQuery" type="text" placeholder="Search..." class="bg-transparent border-none text-sm focus:ring-0 ml-2 w-24 focus:w-44 transition-all">
-                    </div>
-                    <button @click="isCartOpen = true" class="relative p-2 hover:bg-gray-100 rounded-full transition">
-                        <i data-lucide="shopping-bag" class="w-6 h-6"></i>
-                        <span v-if="cartCount > 0" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg">
+                <!-- LOGO CENTRAL/RIGHT -->
+                <div class="text-xl md:text-2xl font-black tracking-[0.2em] italic">
+                    <span class="text-red-600">FARFETCH</span>
+                </div>
+                <!-- ICONS -->
+                <div class="flex items-center space-x-4">
+                    <button class="hidden md:block"><i data-lucide="heart" class="w-5 h-5"></i></button>
+                    <button @click="isCartOpen = true" class="relative">
+                        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                        <span v-if="cartCount > 0" class="absolute -top-2 -right-2 bg-black text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                             {{ cartCount }}
                         </span>
                     </button>
                 </div>
             </div>
         </div>
+
+        <!-- LOWER TIER: Categories -->
+        <div class="hidden md:block h-14 bg-white">
+            <div class="max-w-[1600px] mx-auto px-8 flex items-center space-x-8 h-full">
+                <button v-for="cat in subCategories" :key="cat"
+                    @mouseenter="activeMegaMenu = cat"
+                    class="text-[13px] font-medium text-gray-800 hover:underline underline-offset-[16px] decoration-2 transition-all"
+                    :class="{'font-bold text-black underline': activeMegaMenu === cat}">
+                    {{ cat }}
+                </button>
+            </div>
+        </div>
+
+        <!-- MEGA MENU PANEL (Appears on 'Clothing' hover) -->
+        <transition name="fade">
+            <div v-if="activeMegaMenu === 'Clothing'" 
+                @mouseenter="activeMegaMenu = 'Clothing'"
+                @mouseleave="activeMegaMenu = null"
+                class="absolute top-full left-0 w-full bg-white z-[110] border-b border-gray-200 mega-menu-shadow">
+                <div class="max-w-[1600px] mx-auto px-8 py-12 grid grid-cols-4 gap-8">
+                    <!-- Column 1 -->
+                    <div>
+                        <h3 class="text-[11px] font-bold uppercase tracking-[0.15em] text-black mb-6">Clothing</h3>
+                        <ul class="space-y-3 text-[13px] text-gray-500">
+                            <li v-for="item in megaItems.clothing" class="hover:text-black cursor-pointer transition-colors">{{ item }}</li>
+                        </ul>
+                    </div>
+                    <!-- Column 2 -->
+                    <div>
+                        <h3 class="text-[11px] font-bold uppercase tracking-[0.15em] text-black mb-6">Discover</h3>
+                        <ul class="space-y-3 text-[13px] text-gray-500">
+                            <li v-for="item in megaItems.discover" class="hover:text-black cursor-pointer transition-colors">{{ item }}</li>
+                        </ul>
+                    </div>
+                    <!-- Column 3 -->
+                    <div>
+                        <h3 class="text-[11px] font-bold uppercase tracking-[0.15em] text-black mb-6">Sustainable Services</h3>
+                        <ul class="space-y-3 text-[13px] text-gray-500">
+                            <li class="hover:text-black cursor-pointer">Pre-owned</li>
+                        </ul>
+                    </div>
+                    <!-- Column 4: Image/Feature -->
+                    <div class="relative group cursor-pointer overflow-hidden rounded-sm">
+                        <img src="https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=400" class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-black/10 flex items-end p-6">
+                            <span class="text-white font-bold uppercase tracking-widest text-xs border-b border-white">Shop The Collection</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
     </nav>
 
-    <!-- SEARCH BAR (Mobile Only) -->
-    <div class="lg:hidden p-4 bg-gray-50 border-b">
-        <div class="flex items-center bg-white border rounded-lg px-4 py-2">
-            <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
-            <input v-model="searchQuery" type="text" placeholder="Search products..." class="w-full bg-transparent border-none text-sm focus:ring-0 ml-2">
+    <!-- MOBILE MENU TRIGGER (Mobile only) -->
+    <div class="md:hidden fixed top-12 left-0 w-full bg-gray-50 p-4 z-[90] flex items-center space-x-4 border-b">
+        <button @click="isMobileMenuOpen = true" class="flex items-center space-x-2 text-xs font-bold uppercase">
+            <i data-lucide="menu" class="w-4 h-4"></i>
+            <span>Menu</span>
+        </button>
+        <div class="flex-1 bg-white px-3 py-1.5 rounded border flex items-center">
+            <i data-lucide="search" class="w-3 h-3 text-gray-400 mr-2"></i>
+            <input type="text" placeholder="Search brands, items..." class="text-[10px] w-full focus:outline-none">
         </div>
     </div>
 
-    <!-- HERO SECTION -->
-    <section class="relative h-[60vh] md:h-[80vh] bg-zinc-900 overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070" class="absolute inset-0 w-full h-full object-cover opacity-70">
-        <div class="absolute inset-0 flex flex-col justify-center items-center text-center px-6">
-            <span class="text-red-500 font-black tracking-[0.3em] uppercase mb-4 text-sm">New Expedition 2026</span>
-            <h2 class="text-4xl md:text-7xl font-black text-white uppercase leading-none mb-6 italic">Master the <br>Elements</h2>
-            <button @click="scrollToProducts" class="bg-white text-black hover:bg-red-600 hover:text-white px-10 py-4 font-black uppercase tracking-widest transition-all transform hover:scale-105 shadow-2xl">
-                Explore Collection
-            </button>
-        </div>
-    </section>
-
-    <!-- PRODUCT SECTION -->
-    <main id="products" class="max-w-7xl mx-auto px-4 py-12">
-        <!-- Toolbar -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 space-y-4 md:space-y-0">
-            <div>
-                <h2 class="text-3xl font-black uppercase italic">{{ selectedCategory }}</h2>
-                <p class="text-gray-400 text-sm font-medium">{{ filteredProducts.length }} Technical items found</p>
+    <!-- MAIN CONTENT -->
+    <main class="pt-24 md:pt-32">
+        <!-- HERO -->
+        <section class="relative h-[50vh] md:h-[70vh] w-full bg-zinc-900 overflow-hidden">
+            <img src="C:/Users/sehdev.verma/Downloads/ChatGPT Image Jan 16, 2026, 01_04_38 PM.png">
+            <div class="absolute inset-0 flex flex-col justify-center items-center text-center px-6">
+               <!--   <h2 class="text-white text-4xl md:text-7xl font-black italic uppercase tracking-tighter mb-4 leading-none">
+                   <span class="text-red-600">FARFETCH</span>
+                </h2>
+                  <p class="text-white text-xs md:text-sm tracking-[0.3em] font-medium uppercase mb-8">Technical Expedition Gear 2026</p>
+                <div class="flex space-x-4">
+                    <button class="bg-white text-black px-8 py-4 text-[11px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">Shop Men</button>
+                    <button class="bg-transparent border border-white text-white px-8 py-4 text-[11px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">Shop Women</button>
+                </div>-->
             </div>
-            
-            <div class="flex items-center space-x-4 w-full md:w-auto">
-                <select v-model="sortBy" class="w-full md:w-auto bg-white border-gray-200 rounded-lg text-sm font-bold p-2 focus:ring-red-500">
-                    <option value="default">Sort: Recommended</option>
-                    <option value="low">Price: Low to High</option>
-                    <option value="high">Price: High to Low</option>
-                </select>
-            </div>
-        </div>
+        </section>
 
-        <!-- Product Grid -->
-        <div v-if="filteredProducts.length" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
-            <div v-for="product in filteredProducts" :key="product.id" class="group relative flex flex-col h-full">
-                <!-- Image Container -->
-                <div class="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-4 rounded-xl">
-                    <img :src="product.image" :alt="product.name" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                    <div v-if="product.sale" class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-black px-2 py-1 uppercase rounded-sm shadow-md">Sale</div>
-                    
-                    <!-- Hover Actions (Desktop) -->
-                    <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4 hidden md:flex">
-                        <button @click="openQuickView(product)" class="bg-white text-black w-full py-3 mb-2 font-bold text-xs uppercase hover:bg-black hover:text-white transition">Quick View</button>
-                        <button @click="addToCart(product)" class="bg-red-600 text-white w-full py-3 font-bold text-xs uppercase hover:bg-red-700 transition">Add to Cart</button>
-                    </div>
-                    <!-- Mobile Add To Cart -->
-                    <button @click="addToCart(product)" class="md:hidden absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-lg">
-                        <i data-lucide="plus" class="w-5 h-5"></i>
-                    </button>
+        <!-- PRODUCT GRID -->
+        <section class="max-w-[1600px] mx-auto px-4 md:px-8 py-16">
+            <div class="flex justify-between items-end mb-12">
+                <div>
+                    <span class="text-red-600 font-black text-[10px] uppercase tracking-[0.2em]">New Season</span>
+                    <h2 class="text-3xl font-black italic uppercase tracking-tight">Latest Arrivals</h2>
                 </div>
-                
-                <!-- Info -->
-                <div class="flex flex-col flex-grow">
-                    <span class="text-[10px] font-black text-red-600 uppercase tracking-widest mb-1">{{ product.category }}</span>
-                    <h3 @click="openQuickView(product)" class="text-sm font-bold text-gray-900 mb-2 cursor-pointer hover:underline line-clamp-2 uppercase italic leading-tight">{{ product.name }}</h3>
-                    <div class="mt-auto flex items-center space-x-2">
-                        <span class="text-lg font-black text-zinc-900">{{ product.price }}€</span>
-                        <span v-if="product.sale" class="text-xs text-gray-400 line-through font-bold">{{ product.oldPrice }}€</span>
+                <button class="text-xs font-bold uppercase border-b-2 border-black pb-1">View All</button>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10">
+                <div v-for="product in products" :key="product.id" class="group">
+                    <div class="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-4 cursor-pointer">
+                        <img :src="product.image" :alt="product.name" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div v-if="product.sale" class="absolute top-4 left-4 bg-white text-black text-[10px] font-black px-2 py-1 uppercase shadow-sm italic">Sale -40%</div>
+                        <!-- Hover Quick Add -->
+                        <div class="absolute inset-x-4 bottom-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                            <button @click="addToCart(product)" class="w-full bg-white/90 backdrop-blur-md text-black py-3 text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition">
+                                Add To Cart
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-[10px] font-black uppercase text-gray-400 tracking-widest">Geographical Norway</p>
+                        <h3 class="text-sm font-semibold text-gray-900 group-hover:underline cursor-pointer">{{ product.name }}</h3>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-black">{{ product.price }}€</span>
+                            <span v-if="product.oldPrice" class="text-xs text-gray-400 line-through font-medium">{{ product.oldPrice }}€</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Empty State -->
-        <div v-else class="text-center py-20">
-            <i data-lucide="package-search" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
-            <h3 class="text-xl font-bold">No products found</h3>
-            <p class="text-gray-500">Try adjusting your filters or search query.</p>
-        </div>
+        </section>
     </main>
-
-    <!-- QUICK VIEW MODAL -->
-    <transition name="fade">
-        <div v-if="quickViewProduct" @click="quickViewProduct = null" class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-md">
-            <div @click.stop class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl flex flex-col md:flex-row relative">
-                <button @click="quickViewProduct = null" class="absolute top-4 right-4 z-10 p-2 bg-gray-100 rounded-full"><i data-lucide="x"></i></button>
-                <div class="md:w-1/2 bg-gray-100">
-                    <img :src="quickViewProduct.image" class="w-full h-full object-cover">
-                </div>
-                <div class="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-                    <span class="text-red-600 font-black tracking-widest uppercase mb-2">{{ quickViewProduct.category }}</span>
-                    <h2 class="text-3xl font-black italic uppercase mb-4 leading-none">{{ quickViewProduct.name }}</h2>
-                    <p class="text-gray-500 mb-8 leading-relaxed">High-performance technical gear engineered for the toughest environments. Featuring waterproof fabrics and thermal insulation technology.</p>
-                    <div class="text-3xl font-black mb-8">{{ quickViewProduct.price }}€</div>
-                    <button @click="addToCart(quickViewProduct); quickViewProduct = null" class="bg-black text-white py-5 font-black uppercase tracking-widest hover:bg-red-600 transition-colors">Add to Cart</button>
-                </div>
-            </div>
-        </div>
-    </transition>
 
     <!-- CART SIDEBAR -->
     <transition name="fade">
-        <div v-if="isCartOpen" @click="isCartOpen = false" class="fixed inset-0 bg-black/60 z-[80] backdrop-blur-sm"></div>
+        <div v-if="isCartOpen" @click="isCartOpen = false" class="fixed inset-0 bg-black/40 z-[150] backdrop-blur-sm"></div>
     </transition>
     <transition name="slide">
-        <div v-if="isCartOpen" class="fixed top-0 right-0 w-full md:w-[450px] h-full bg-white z-[90] flex flex-col shadow-2xl">
-            <div class="p-6 border-b flex justify-between items-center">
-                <h2 class="text-xl font-black italic uppercase">Your Gear ({{ cartCount }})</h2>
-                <button @click="isCartOpen = false" class="p-2 hover:bg-gray-100 rounded-full transition"><i data-lucide="x"></i></button>
+        <div v-if="isCartOpen" class="fixed top-0 right-0 w-full md:w-[450px] h-full bg-white z-[200] shadow-2xl flex flex-col">
+            <div class="p-6 border-b flex justify-between items-center bg-gray-50">
+                <h2 class="text-sm font-black uppercase tracking-widest italic">Your Shopping Bag ({{ cartCount }})</h2>
+                <button @click="isCartOpen = false" class="p-2 hover:bg-white rounded-full transition"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-6 space-y-6">
-                <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-gray-400 text-center">
-                    <i data-lucide="shopping-cart" class="w-16 h-16 mb-4 opacity-20"></i>
-                    <p class="font-bold uppercase tracking-widest">Adventure awaits. <br>Fill your bag.</p>
+            <div class="flex-1 overflow-y-auto p-6 custom-scroll">
+                <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-gray-300">
+                    <i data-lucide="shopping-bag" class="w-12 h-12 mb-4 opacity-20"></i>
+                    <p class="text-[10px] font-black uppercase tracking-widest">Bag is empty</p>
                 </div>
-                
-                <div v-for="item in cart" :key="item.id" class="flex items-center space-x-4 group">
-                    <div class="w-24 h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                        <img :src="item.image" class="w-full h-full object-cover">
-                    </div>
+                <div v-for="item in cart" :key="item.id" class="flex items-start space-x-4 mb-8">
+                    <img :src="item.image" class="w-20 h-28 object-cover bg-gray-50">
                     <div class="flex-1">
-                        <h4 class="text-xs font-black uppercase italic leading-tight mb-1">{{ item.name }}</h4>
-                        <div class="text-sm font-black mb-3">{{ item.price }}€</div>
-                        <div class="flex items-center space-x-3">
-                            <div class="flex items-center border border-gray-200 rounded-md">
-                                <button @click="updateQty(item.id, -1)" class="px-2 py-1 hover:bg-gray-100">-</button>
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Geographical Norway</p>
+                        <h4 class="text-xs font-bold uppercase mb-2">{{ item.name }}</h4>
+                        <p class="text-sm font-black mb-4">{{ item.price }}€</p>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center border rounded">
+                                <button @click="updateQty(item.id, -1)" class="px-2 py-1 text-xs">-</button>
                                 <span class="px-3 text-xs font-bold">{{ item.quantity }}</span>
-                                <button @click="updateQty(item.id, 1)" class="px-2 py-1 hover:bg-gray-100">+</button>
+                                <button @click="updateQty(item.id, 1)" class="px-2 py-1 text-xs">+</button>
                             </div>
-                            <button @click="removeFromCart(item.id)" class="text-xs font-bold text-red-600 uppercase">Remove</button>
+                            <button @click="removeFromCart(item.id)" class="text-[9px] font-black text-red-600 uppercase border-b border-red-600 pb-0.5">Remove</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div v-if="cart.length > 0" class="p-8 border-t bg-gray-50">
+            <div v-if="cart.length > 0" class="p-8 border-t bg-white">
                 <div class="flex justify-between items-center mb-6">
-                    <span class="text-gray-500 font-bold uppercase text-xs tracking-widest">Subtotal</span>
-                    <span class="text-2xl font-black">{{ cartTotal }}€</span>
+                    <span class="text-[11px] font-black uppercase tracking-widest text-gray-400">Total</span>
+                    <span class="text-2xl font-black italic">{{ cartTotal }}€</span>
                 </div>
-                <button class="w-full bg-red-600 text-white py-5 font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl">
-                    Secure Checkout
+                <button class="w-full bg-black text-white py-5 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-red-600 transition-all shadow-xl shadow-black/10">
+                    Proceed to Checkout
                 </button>
             </div>
         </div>
     </transition>
 
     <!-- FOOTER -->
-    <footer class="bg-zinc-900 text-white pt-20 pb-10">
-        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
-            <div>
-                <h1 class="text-2xl font-black italic mb-6 uppercase">GEOGRAPHICAL<br><span class="text-red-600">NORWAY</span></h1>
-                <p class="text-zinc-500 text-sm leading-relaxed">Pioneering technical outdoor apparel since 1953. Built for expeditions, refined for city life.</p>
+  <!-- Replace your current <footer> with this one -->
+<footer class="bg-white border-t border-gray-200 pt-24 pb-12">
+    <div class="max-w-[1600px] mx-auto px-8">
+        
+        <!-- Main Footer Content -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
+            
+            <!-- Company Info & Address -->
+            <div class="space-y-6">
+                <div class="text-xl font-black tracking-[0.2em] italic">
+                      <span class="text-red-600">FARFETCH</span>
+                </div>
+                <p class="text-xs text-gray-500 leading-relaxed font-medium uppercase tracking-wider">
+                    Official European Store. Providing technical expedition gear and high-performance outerwear for extreme environments since 1953.
+                </p>
+                <div class="space-y-3 text-[11px] font-bold uppercase tracking-widest">
+                    <div class="flex items-center space-x-3">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-gray-400"></i>
+                        <span>12 Rue de la Paix, 75002 Paris, France</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <i data-lucide="phone" class="w-4 h-4 text-gray-400"></i>
+                        <span>+33 (0) 1 44 55 66 77</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <i data-lucide="mail" class="w-4 h-4 text-gray-400"></i>
+                        <span>contact@geographical-norway.com</span>
+                    </div>
+                </div>
             </div>
+
+            <!-- Customer Service -->
             <div>
-                <h4 class="font-black uppercase text-sm tracking-widest mb-6 text-red-600">Explore</h4>
-                <ul class="space-y-4 text-zinc-400 text-sm">
-                    <li><a href="#" class="hover:text-white transition">New Arrivals</a></li>
-                    <li><a href="#" class="hover:text-white transition">Bestsellers</a></li>
-                    <li><a href="#" class="hover:text-white transition">Expedition Lab</a></li>
+                <h4 class="text-[11px] font-black uppercase tracking-[0.2em] mb-8">Customer Service</h4>
+                <ul class="text-xs text-gray-500 space-y-4 font-bold uppercase tracking-widest">
+                    <li class="hover:text-red-600 cursor-pointer transition-colors">Help & Contact Us</li>
+                    <li class="hover:text-red-600 cursor-pointer transition-colors">Orders & Shipping</li>
+                    <li class="hover:text-red-600 cursor-pointer transition-colors">Returns & Refunds</li>
+                    <li class="hover:text-red-600 cursor-pointer transition-colors">Payment & Pricing</li>
+                    <li class="hover:text-red-600 cursor-pointer transition-colors">Size Guide</li>
                 </ul>
             </div>
+
+            <!-- About Us -->
             <div>
-                <h4 class="font-black uppercase text-sm tracking-widest mb-6 text-red-600">Support</h4>
-                <ul class="space-y-4 text-zinc-400 text-sm">
-                    <li><a href="#" class="hover:text-white transition">Technical Care</a></li>
-                    <li><a href="#" class="hover:text-white transition">Shipping Info</a></li>
-                    <li><a href="#" class="hover:text-white transition">Size Guide</a></li>
+                <h4 class="text-[11px] font-black uppercase tracking-[0.2em] mb-8">About the Brand</h4>
+                <ul class="text-xs text-gray-500 space-y-4 font-bold uppercase tracking-widest">
+                    <li class="hover:text-red-600 cursor-pointer transition-colors">The Norway Heritage</li>
+                    <li class="hover:text-red-600 cursor-pointer transition-colors">Sustainability Commitments</li>
+                    <li class="hover:text-red-600 cursor-pointer transition-colors">Affiliate Program</li>
+                    <li class="hover:text-red-600 cursor-pointer transition-colors">Careers</li>
+                    <li class="hover:text-red-600 cursor-pointer transition-colors">Store Locator</li>
                 </ul>
             </div>
+
+            <!-- Newsletter & Social -->
             <div>
-                <h4 class="font-black uppercase text-sm tracking-widest mb-6 text-red-600">Join the Crew</h4>
-                <p class="text-zinc-500 text-xs mb-4 uppercase">Get 10% off your first expedition gear.</p>
-                <div class="flex">
-                    <input type="text" placeholder="EMAIL" class="bg-zinc-800 border-none px-4 py-3 w-full text-sm focus:ring-1 ring-red-600">
-                    <button class="bg-white text-black px-4 font-black text-xs uppercase hover:bg-red-600 hover:text-white transition">JOIN</button>
+                <h4 class="text-[11px] font-black uppercase tracking-[0.2em] mb-8">Join the Expedition</h4>
+                <p class="text-xs text-gray-400 mb-6 font-medium uppercase tracking-widest">Subscribe for early access to new collections and sales.</p>
+                <div class="flex border-b-2 border-black pb-2 mb-8">
+                    <input type="email" placeholder="YOUR EMAIL ADDRESS" class="bg-transparent border-none text-[11px] w-full focus:ring-0 font-bold placeholder-gray-300">
+                    <button class="text-[11px] font-black uppercase tracking-widest hover:text-red-600 transition-colors">Join</button>
+                </div>
+                
+                <h4 class="text-[11px] font-black uppercase tracking-[0.2em] mb-6">Follow Us</h4>
+                <div class="flex space-x-6 text-gray-400">
+                    <i data-lucide="instagram" class="w-5 h-5 cursor-pointer hover:text-black transition-colors"></i>
+                    <i data-lucide="facebook" class="w-5 h-5 cursor-pointer hover:text-black transition-colors"></i>
+                    <i data-lucide="twitter" class="w-5 h-5 cursor-pointer hover:text-black transition-colors"></i>
+                    <i data-lucide="youtube" class="w-5 h-5 cursor-pointer hover:text-black transition-colors"></i>
                 </div>
             </div>
         </div>
-        <div class="text-center text-[10px] text-zinc-600 font-bold tracking-[0.2em] uppercase border-t border-zinc-800 pt-10">
-            &copy; 2026 GEOGRAPHICAL NORWAY | EXPLORE MORE
+
+        <!-- Bottom Bar: Payments & Copyright -->
+        <div class="pt-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
+            <!-- Copyright -->
+            <div class="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">
+                &copy; 2026   <span class="text-red-600">FARFETCH</span>  . ALL RIGHTS RESERVED.
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="flex items-center space-x-6 opacity-30 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-default">
+                <i data-lucide="credit-card" class="w-6 h-6"></i>
+                <span class="text-[10px] font-black italic">VISA</span>
+                <span class="text-[10px] font-black italic">MASTERCARD</span>
+                <span class="text-[10px] font-black italic">PAYPAL</span>
+                <span class="text-[10px] font-black italic">AMEX</span>
+            </div>
+            
+            <!-- Terms Links -->
+            <div class="flex space-x-6 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                <span class="hover:text-black cursor-pointer">Privacy</span>
+                <span class="hover:text-black cursor-pointer">Terms</span>
+                <span class="hover:text-black cursor-pointer">Cookies</span>
+            </div>
         </div>
-    </footer>
+    </div>
+</footer>
 
 </div>
 
@@ -274,14 +332,17 @@
     createApp({
         setup() {
             const isCartOpen = ref(false);
-            const isMobileMenuOpen = ref(false);
-            const quickViewProduct = ref(null);
-            const selectedCategory = ref('All');
-            const searchQuery = ref('');
-            const sortBy = ref('default');
+            const activeMegaMenu = ref(null);
+            const currentGender = ref('Womenswear');
             const cart = ref([]);
-            
-            const categories = ['All', 'Parkas', 'Softshells', 'Jackets', 'Accessories'];
+
+            const genderTypes = ['Womenswear', 'Menswear', 'Kidswear'];
+            const subCategories = ['Sale', 'New in', 'Brands', 'Clothing', 'Shoes', 'Bags', 'Accessories', 'Jewelry', 'Lifestyle', 'Pre-owned'];
+
+            const megaItems = {
+                clothing: ['All clothing', 'Dresses', 'Tops', 'Knitwear', 'Jackets', 'Coats', 'Skiwear', 'Trousers', 'Skirts', 'Denim', 'Activewear', 'Lingerie', 'Beachwear'],
+                discover: ['New clothing', 'Wardrobe staples', 'Ski and après', 'The new-season forecast', 'Matching sets', 'Bridal', 'Wedding guest', 'Partywear', 'Light layers', 'Winter Sun']
+            };
 
             const products = ref([
                 { id: 1, name: 'BOKER Men Parka Navy', price: 129, oldPrice: 199, sale: true, category: 'Parkas', image: 'https://asda.scene7.com/is/image/Asda/5059196328318?hei=1026&wid=762&qlt=85&fmt=pjpg&resmode=sharp2&op_usm=1.1,0.5,0,0&defaultimage=default_details_George_rd' },
@@ -293,26 +354,6 @@
                 { id: 7, name: 'TOWER Windbreaker Black', price: 75, oldPrice: 99, sale: true, category: 'Jackets', image: 'https://www.vishalmegamart.com/dw/image/v2/BGHT_PRD/on/demandware.static/-/Sites-vmm-apparel-master-catalog/default/dw726221e9/images/large/1111009451001.jpg?sw=900&sh=900' },
                 { id: 8, name: 'Technical Fleece Polar', price: 55, oldPrice: 0, sale: false, category: 'Accessories', image: 'https://www.diadorautility.com/dw/image/v2/BBPK_PRD/on/demandware.static/-/Sites-utility-master/default/dwe976f608/images/hi-res/702.179457_D0217_10_HR.jpg?sw=1920' },
            ]);
-
-            const filteredProducts = computed(() => {
-                let items = [...products.value];
-                
-                // Category Filter
-                if (selectedCategory.value !== 'All') {
-                    items = items.filter(p => p.category === selectedCategory.value);
-                }
-                
-                // Search Filter
-                if (searchQuery.value) {
-                    items = items.filter(p => p.name.toLowerCase().includes(searchQuery.value.toLowerCase()));
-                }
-                
-                // Sorting
-                if (sortBy.value === 'low') items.sort((a, b) => a.price - b.price);
-                if (sortBy.value === 'high') items.sort((a, b) => b.price - a.price);
-                
-                return items;
-            });
 
             const cartCount = computed(() => cart.value.reduce((acc, item) => acc + item.quantity, 0));
             const cartTotal = computed(() => cart.value.reduce((acc, item) => acc + (item.price * item.quantity), 0));
@@ -341,22 +382,6 @@
                 }
             };
 
-            const openQuickView = (product) => {
-                quickViewProduct.value = product;
-                refreshIcons();
-            };
-
-            const resetFilters = () => {
-                selectedCategory.value = 'All';
-                searchQuery.value = '';
-                sortBy.value = 'default';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-
-            const scrollToProducts = () => {
-                document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
-            };
-
             const refreshIcons = () => {
                 nextTick(() => {
                     if (window.lucide) window.lucide.createIcons();
@@ -364,15 +389,12 @@
             };
 
             onMounted(refreshIcons);
-            // Re-run icon logic when search or categories change
-            watch([filteredProducts, isCartOpen, quickViewProduct], refreshIcons);
+            watch([isCartOpen, activeMegaMenu], refreshIcons);
 
             return {
-                isCartOpen, isMobileMenuOpen, quickViewProduct, selectedCategory, 
-                searchQuery, sortBy, products, categories, 
-                filteredProducts, cart, addToCart, removeFromCart,
-                cartCount, cartTotal, updateQty, openQuickView, resetFilters,
-                scrollToProducts
+                isCartOpen, activeMegaMenu, currentGender, genderTypes, subCategories, 
+                megaItems, products, cart, addToCart, removeFromCart,
+                cartCount, cartTotal, updateQty
             };
         }
     }).mount('#app');
