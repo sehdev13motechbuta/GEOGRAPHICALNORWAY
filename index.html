@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geographical Norway Shop | Technical Outdoor Wear</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .cart-drawer { transition: transform 0.3s ease-in-out; }
+        .product-card:hover img { transform: scale(1.05); }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<div id="app" class="relative min-h-screen">
+    
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-40 bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Mobile Menu Toggle -->
+                <button class="md:hidden p-2 text-gray-600">
+                    <i data-lucide="menu"></i>
+                </button>
+
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center cursor-pointer" @click="selectedCategory = 'All'">
+                    <span class="text-xl font-black tracking-tighter text-gray-900">GEOGRAPHICAL<span class="text-red-600">NORWAY</span></span>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8">
+                    <button v-for="cat in categories" :key="cat" 
+                        @click="selectedCategory = cat"
+                        :class="selectedCategory === cat ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-600 hover:text-red-600'"
+                        class="px-1 py-5 text-sm font-medium transition-colors">
+                        {{ cat }}
+                    </button>
+                </div>
+
+                <!-- Icons -->
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 text-gray-600 hover:text-red-600">
+                        <i data-lucide="search"></i>
+                    </button>
+                    <button @click="isCartOpen = true" class="p-2 text-gray-600 hover:text-red-600 relative">
+                        <i data-lucide="shopping-bag"></i>
+                        <span v-if="cartCount > 0" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                            {{ cartCount }}
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative bg-black h-[400px] overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&q=80&w=1600" 
+             class="w-full h-full object-cover opacity-60" alt="Outdoor gear">
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+            <h1 class="text-4xl md:text-6xl font-black text-white mb-4 uppercase tracking-tight">Technical Expedition</h1>
+            <p class="text-gray-200 text-lg mb-8 max-w-lg">Designed for extreme conditions. Discover the new Winter Collection.</p>
+            <button class="bg-red-600 text-white px-8 py-3 font-bold uppercase tracking-wider hover:bg-red-700 transition">...</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 uppercase tracking-wide">{{ selectedCategory }} Products</h2>
+            <p class="text-gray-500 text-sm">{{ filteredProducts.length }} Items</p>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div v-for="product in filteredProducts" :key="product.id" class="product-card group bg-white border border-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all">
+                <div class="relative aspect-[3/4] overflow-hidden bg-gray-200">
+                    <img :src="product.image" :alt="product.name" class="w-full h-full object-cover transition-transform duration-500">
+                    <div v-if="product.sale" class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-black px-2 py-1 uppercase">Sale</div>
+                    <!-- Quick Add Button -->
+                    <button @click="addToCart(product)" class="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur text-black py-2 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                        ADD TO CART
+                    </button>
+                </div>
+                <div class="p-4 text-center">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1">Geographical Norway</p>
+                    <h3 class="text-sm font-semibold text-gray-800 mb-2 truncate">{{ product.name }}</h3>
+                    <div class="flex justify-center items-center space-x-2">
+                        <span class="text-lg font-black text-gray-900">{{ product.price }}€</span>
+                        <span v-if="product.sale" class="text-sm text-gray-400 line-through">{{ product.oldPrice }}€</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Cart Drawer Overlay -->
+    <div v-if="isCartOpen" @click="isCartOpen = false" class="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm transition-opacity"></div>
+    
+    <!-- Cart Drawer Content -->
+    <aside :class="isCartOpen ? 'translate-x-0' : 'translate-x-full'" class="fixed top-0 right-0 w-full max-w-md h-full bg-white z-50 shadow-2xl cart-drawer flex flex-col">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h2 class="text-xl font-bold uppercase tracking-tight">Your Cart ({{ cartCount }})</h2>
+            <button @click="isCartOpen = false" class="p-2 hover:bg-gray-100 rounded-full">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6">
+            <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-gray-400">
+                <i data-lucide="shopping-cart" class="w-12 h-12 mb-4"></i>
+                <p>Your cart is empty</p>
+            </div>
+            
+            <div v-else class="space-y-6">
+                <div v-for="item in cart" :key="item.id" class="flex items-center space-x-4">
+                    <img :src="item.image" class="w-20 h-24 object-cover rounded bg-gray-50">
+                    <div class="flex-1">
+                        <h4 class="text-sm font-bold text-gray-900">{{ item.name }}</h4>
+                        <p class="text-sm text-gray-500">{{ item.price }}€</p>
+                        <div class="flex items-center mt-2">
+                            <button @click="updateQty(item.id, -1)" class="w-8 h-8 border border-gray-200 flex items-center justify-center hover:bg-gray-50">-</button>
+                            <span class="px-4 text-sm font-medium">{{ item.quantity }}</span>
+                            <button @click="updateQty(item.id, 1)" class="w-8 h-8 border border-gray-200 flex items-center justify-center hover:bg-gray-50">+</button>
+                        </div>
+                    </div>
+                    <button @click="removeFromCart(item.id)" class="text-gray-400 hover:text-red-600">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="cart.length > 0" class="p-6 border-t border-gray-100 bg-gray-50">
+            <div class="flex justify-between text-xl font-black mb-4 uppercase">
+                <span>Total</span>
+                <span>{{ cartTotal }}€</span>
+            </div>
+            <button class="w-full bg-black text-white py-4 font-bold uppercase tracking-widest hover:bg-red-700 transition-colors">
+                Checkout Now
+            </button>
+        </div>
+    </aside>
+
+    <!-- Footer -->
+    <footer class="bg-zinc-900 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 text-sm">
+            <div class="space-y-4">
+                <h3 class="font-black text-lg uppercase">Norway Tech</h3>
+                <p class="text-gray-400 leading-relaxed">High-performance technical apparel designed for explorers and winter enthusiasts.</p>
+            </div>
+            <div class="space-y-2">
+                <h4 class="font-bold uppercase mb-4">Customer Care</h4>
+                <p class="text-gray-400 hover:text-white cursor-pointer">Shipping Policy</p>
+                <p class="text-gray-400 hover:text-white cursor-pointer">Returns & Exchanges</p>
+                <p class="text-gray-400 hover:text-white cursor-pointer">Size Guide</p>
+            </div>
+            <div class="space-y-2">
+                <h4 class="font-bold uppercase mb-4">Contact</h4>
+                <p class="text-gray-400">Email: support@norway-shop.com</p>
+                <p class="text-gray-400">Phone: +34 900 000 000</p>
+            </div>
+            <div>
+                <h4 class="font-bold uppercase mb-4">Newsletter</h4>
+                <div class="flex">
+                    <input type="email" placeholder="Email address" class="bg-zinc-800 border-none px-4 py-2 w-full focus:ring-1 ring-red-600">
+                    <button class="bg-red-600 px-4 py-2 font-bold uppercase">Join</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</div>
+
+<script>
+    const { createApp, ref, computed, onMounted, nextTick } = Vue;
+
+    createApp({
+        setup() {
+            const isCartOpen = ref(false);
+            const selectedCategory = ref('All');
+            const cart = ref([]);
+            const categories = ['All', 'Parkas', 'Softshells', 'Jackets', 'Accessories'];
+
+            const products = ref([
+                { id: 1, name: 'BOKER Men Parka Navy', price: 129, oldPrice: 199, sale: true, category: 'Parkas', image: 'https://asda.scene7.com/is/image/Asda/5059196328318?hei=1026&wid=762&qlt=85&fmt=pjpg&resmode=sharp2&op_usm=1.1,0.5,0,0&defaultimage=default_details_George_rd' },
+                { id: 2, name: 'ROCHELLE Softshell Jacket', price: 89, oldPrice: 0, sale: false, category: 'Softshells', image: 'https://www.jack-wolfskin.com/dw/image/v2/AAQL_PRD/on/demandware.static/-/Sites-22021_JW_Master/default/dw8fb63ea2/large/1115321_1010_1-troposphere-ins-jkt-m-night-blue.jpg?sw=1800&sh=2600&sfrm=png&bgcolor=F5F5F5' },
+                { id: 3, name: 'ABRAMOV Winter Coat Grey', price: 145, oldPrice: 210, sale: true, category: 'Jackets', image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSiLe9_tlfwI2t3jbGzAF40p8t1ns31BfWH6A&s' },
+                { id: 4, name: 'EXPEDITION Heavy Duty Parka', price: 189, oldPrice: 0, sale: false, category: 'Parkas', image: 'https://www.twinseasons.eu/resize/expeditionlongdownparkaw86126-560dmodelfjr-ts_5063765064584.jpg/0/1100/True/fjallraven-expedition-long-down-parka-w.jpg' },
+                { id: 5, name: 'TOWER Windbreaker Black', price: 75, oldPrice: 99, sale: true, category: 'Jackets', image: 'https://www.vishalmegamart.com/dw/image/v2/BGHT_PRD/on/demandware.static/-/Sites-vmm-apparel-master-catalog/default/dw726221e9/images/large/1111009451001.jpg?sw=900&sh=900' },
+                { id: 6, name: 'Technical Fleece Polar', price: 55, oldPrice: 0, sale: false, category: 'Accessories', image: 'https://www.diadorautility.com/dw/image/v2/BBPK_PRD/on/demandware.static/-/Sites-utility-master/default/dwe976f608/images/hi-res/702.179457_D0217_10_HR.jpg?sw=1920' },
+            ]);
+
+            const filteredProducts = computed(() => {
+                if (selectedCategory.value === 'All') return products.value;
+                return products.value.filter(p => p.category === selectedCategory.value);
+            });
+
+            const cartCount = computed(() => cart.value.reduce((acc, item) => acc + item.quantity, 0));
+            
+            const cartTotal = computed(() => cart.value.reduce((acc, item) => acc + (item.price * item.quantity), 0));
+
+            const addToCart = (product) => {
+                const existing = cart.value.find(item => item.id === product.id);
+                if (existing) {
+                    existing.quantity++;
+                } else {
+                    cart.value.push({ ...product, quantity: 1 });
+                }
+                isCartOpen.value = true;
+                refreshIcons();
+            };
+
+            const removeFromCart = (id) => {
+                cart.value = cart.value.filter(item => item.id !== id);
+                refreshIcons();
+            };
+
+            const updateQty = (id, delta) => {
+                const item = cart.value.find(i => i.id === id);
+                if (item) {
+                    item.quantity += delta;
+                    if (item.quantity < 1) removeFromCart(id);
+                }
+            };
+
+            const refreshIcons = () => {
+                nextTick(() => {
+                    if (window.lucide) window.lucide.createIcons();
+                });
+            };
+
+            onMounted(() => {
+                refreshIcons();
+            });
+
+            return {
+                isCartOpen, selectedCategory, products, categories, 
+                filteredProducts, cart, addToCart, removeFromCart,
+                cartCount, cartTotal, updateQty
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
