@@ -12,7 +12,6 @@
         [v-cloak] { display: none; }
         body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
         
-        /* Smooth transitions */
         .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
         .fade-enter-from, .fade-leave-to { opacity: 0; }
         
@@ -22,9 +21,8 @@
         .slide-left-enter-active, .slide-left-leave-active { transition: transform 0.3s ease-in-out; }
         .slide-left-enter-from, .slide-left-leave-to { transform: translateX(-100%); }
 
-        .mega-menu-shadow { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #000; }
+        .mega-menu-shadow { box-shadow: 0 40px 60px -15px rgba(0, 0, 0, 0.1); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-white">
@@ -41,21 +39,10 @@
                 <span class="font-black italic text-red-600">FARFETCH</span>
                 <button @click="isMobileMenuOpen = false"><i data-lucide="x"></i></button>
             </div>
-            <div class="flex border-b">
-                <button v-for="type in genderTypes" @click="currentGender = type" 
-                    class="flex-1 py-4 text-[10px] font-bold uppercase tracking-widest border-b-2"
-                    :class="currentGender === type ? 'border-black text-black' : 'border-transparent text-gray-400'">
-                    {{ type }}
-                </button>
-            </div>
             <div class="flex-1 overflow-y-auto p-6 space-y-6">
                 <div v-for="cat in subCategories" :key="cat" class="text-sm font-bold uppercase tracking-widest border-b border-gray-50 pb-2">
                     {{ cat }}
                 </div>
-            </div>
-            <div class="p-6 bg-gray-50 text-[10px] font-bold uppercase tracking-widest space-y-4">
-                <div class="flex items-center space-x-2"><i data-lucide="user" class="w-4 h-4"></i> <span>Login / Register</span></div>
-                <div class="flex items-center space-x-2"><i data-lucide="help-circle" class="w-4 h-4"></i> <span>Customer Help</span></div>
             </div>
         </div>
     </transition>
@@ -65,12 +52,7 @@
         <!-- TOP TIER -->
         <div class="border-b border-gray-100 h-12 md:h-14">
             <div class="max-w-[1600px] mx-auto px-4 md:px-8 flex justify-between items-center h-full">
-                <!-- Mobile Burger (Left) -->
-                <button @click="isMobileMenuOpen = true" class="md:hidden p-2 -ml-2">
-                    <i data-lucide="menu"></i>
-                </button>
-
-                <!-- Desktop Genders -->
+                <button @click="isMobileMenuOpen = true" class="md:hidden p-2 -ml-2"><i data-lucide="menu"></i></button>
                 <div class="hidden md:flex space-x-6 h-full items-center">
                     <button v-for="type in genderTypes" :key="type" @click="currentGender = type"
                         class="text-[11px] font-bold uppercase tracking-widest transition-all h-full border-b-2"
@@ -78,62 +60,64 @@
                         {{ type }}
                     </button>
                 </div>
-
-                <!-- LOGO (Center on Mobile, Center/Right on Desktop) -->
                 <div class="text-xl md:text-2xl font-black tracking-[0.2em] italic absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0">
                     <span class="text-red-600">FARFETCH</span>
                 </div>
-
-                <!-- ICONS -->
                 <div class="flex items-center space-x-2 md:space-x-4">
-                    <button class="hidden sm:block p-2"><i data-lucide="search" class="w-5 h-5"></i></button>
-                    <button class="hidden sm:block p-2"><i data-lucide="heart" class="w-5 h-5"></i></button>
                     <button @click="isCartOpen = true" class="relative p-2">
                         <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-                        <span v-if="cartCount > 0" class="absolute top-0 right-0 bg-black text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-                            {{ cartCount }}
-                        </span>
+                        <span v-if="cartCount > 0" class="absolute top-0 right-0 bg-black text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">{{ cartCount }}</span>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- LOWER TIER: Categories (Hidden on Mobile) -->
+        <!-- CATEGORY TIER -->
         <div class="hidden md:block h-14 bg-white">
             <div class="max-w-[1600px] mx-auto px-8 flex items-center space-x-8 h-full overflow-x-auto no-scrollbar">
                 <button v-for="cat in subCategories" :key="cat"
                     @mouseenter="activeMegaMenu = cat"
-                    class="whitespace-nowrap text-[12px] lg:text-[13px] font-medium text-gray-800 hover:underline underline-offset-[16px] decoration-2">
+                    class="whitespace-nowrap text-[12px] font-medium text-gray-800 hover:underline underline-offset-[16px] decoration-2">
                     {{ cat }}
                 </button>
             </div>
         </div>
 
-        <!-- MEGA MENU (Desktop Only) -->
+        <!-- VISUAL MEGA MENU (CLOTHING) -->
         <transition name="fade">
             <div v-if="activeMegaMenu === 'Clothing'" 
                 @mouseenter="activeMegaMenu = 'Clothing'" @mouseleave="activeMegaMenu = null"
                 class="hidden md:block absolute top-full left-0 w-full bg-white z-[110] border-b border-gray-200 mega-menu-shadow">
-                <div class="max-w-[1600px] mx-auto px-8 py-12 grid grid-cols-4 gap-8">
-                    <div>
-                        <h3 class="text-[11px] font-bold uppercase tracking-[0.15em] mb-6">Clothing</h3>
-                        <ul class="space-y-3 text-[13px] text-gray-500">
-                            <li v-for="item in megaItems.clothing" class="hover:text-black cursor-pointer">{{ item }}</li>
-                        </ul>
+                <div class="max-w-[1600px] mx-auto px-8 py-10 grid grid-cols-12 gap-10">
+                    
+                    <!-- Links Columns (4/12 width) -->
+                    <div class="col-span-4 grid grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-[11px] font-bold uppercase tracking-[0.15em] mb-6 border-b pb-2">Categories</h3>
+                            <ul class="space-y-3 text-[13px] text-gray-500 font-medium">
+                                <li v-for="item in megaItems.clothing" class="hover:text-black hover:pl-1 transition-all cursor-pointer">{{ item }}</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-[11px] font-bold uppercase tracking-[0.15em] mb-6 border-b pb-2">Discover</h3>
+                            <ul class="space-y-3 text-[13px] text-gray-500 font-medium">
+                                <li v-for="item in megaItems.discover" class="hover:text-black hover:pl-1 transition-all cursor-pointer">{{ item }}</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-[11px] font-bold uppercase tracking-[0.15em] mb-6">Discover</h3>
-                        <ul class="space-y-3 text-[13px] text-gray-500">
-                            <li v-for="item in megaItems.discover" class="hover:text-black cursor-pointer">{{ item }}</li>
-                        </ul>
+
+                    <!-- Visual Category Cards (8/12 width) -->
+                    <div class="col-span-8 grid grid-cols-3 gap-6">
+                        <div v-for="feature in clothingFeatures" :key="feature.title" class="group cursor-pointer">
+                            <div class="relative overflow-hidden aspect-[4/5] rounded-sm mb-3">
+                                <img :src="feature.image" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-all"></div>
+                            </div>
+                            <h4 class="text-[11px] font-black uppercase tracking-widest">{{ feature.title }}</h4>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase">Explore Now</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-[11px] font-bold uppercase tracking-[0.15em] mb-6">Sustainable</h3>
-                        <ul class="space-y-3 text-[13px] text-gray-500"><li class="hover:text-black cursor-pointer">Pre-owned</li></ul>
-                    </div>
-                    <div class="relative overflow-hidden rounded-sm h-64">
-                        <img src="https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=400" class="w-full h-full object-cover">
-                    </div>
+
                 </div>
             </div>
         </transition>
@@ -142,48 +126,46 @@
     <!-- MAIN CONTENT -->
     <main class="pt-12 md:pt-28">
         <!-- HERO -->
-        <section class="relative h-[60vh] md:h-[75vh] w-full bg-zinc-900 overflow-hidden">
+        <section class="relative h-[65vh] md:h-[80vh] w-full bg-zinc-900 overflow-hidden">
             <img src="https://t4.ftcdn.net/jpg/05/96/62/65/360_F_596626503_jrzjZNYStDexiWxQFqO7oCh6M8PdMlJs.jpg" class="absolute inset-0 w-full h-full object-cover opacity-80">
             <div class="absolute inset-0 flex flex-col justify-center items-center text-center px-6">
-                <h2 class="text-white text-4xl sm:text-5xl md:text-8xl font-black italic uppercase tracking-tighter mb-4 leading-none">
+                <h2 class="text-white text-5xl md:text-8xl font-black italic uppercase tracking-tighter mb-4 leading-none">
                     <span class="text-red-600">FARFETCH</span>
                 </h2>
-                <p class="text-white text-[10px] md:text-sm tracking-[0.3em] font-medium uppercase mb-8">Technical Expedition Gear 2026</p>
+                <p class="text-white text-xs md:text-sm tracking-[0.3em] font-medium uppercase mb-8">Technical Expedition Gear 2026</p>
                 <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                    <button class="bg-white text-black px-10 py-4 text-[11px] font-black uppercase tracking-widest transition-all w-full sm:w-auto">Shop Men</button>
-                    <button class="bg-transparent border border-white text-white px-10 py-4 text-[11px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all w-full sm:w-auto">Shop Women</button>
+                    <button class="bg-white text-black px-12 py-4 text-[11px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">Shop Men</button>
+                    <button class="bg-transparent border border-white text-white px-12 py-4 text-[11px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">Shop Women</button>
                 </div> 
             </div>
         </section>
 
         <!-- PRODUCT GRID -->
-        <section class="max-w-[1600px] mx-auto px-4 md:px-8 py-12 md:py-20">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 gap-4">
+        <section class="max-w-[1600px] mx-auto px-4 md:px-8 py-16 md:py-24">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 gap-4">
                 <div>
-                    <span class="text-red-600 font-black text-[10px] uppercase tracking-[0.2em]">New Season</span>
-                    <h2 class="text-2xl md:text-4xl font-black italic uppercase tracking-tight">Latest Arrivals</h2>
+                    <span class="text-red-600 font-black text-[10px] uppercase tracking-[0.2em]">New Arrivals</span>
+                    <h2 class="text-3xl md:text-5xl font-black italic uppercase tracking-tight">Essential Gear</h2>
                 </div>
-                <button class="text-[11px] font-bold uppercase border-b-2 border-black pb-1">View All Collection</button>
+                <button class="text-[11px] font-bold uppercase border-b-2 border-black pb-1">Browse All</button>
             </div>
 
-            <!-- Responsive Grid: 1 col on mobile, 2 on small tablet, 3 on tablet, 4 on desktop -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
                 <div v-for="product in products" :key="product.id" class="group flex flex-col h-full">
-                    <div class="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-4 cursor-pointer">
+                    <div class="relative aspect-[3/4] overflow-hidden bg-gray-100 mb-5 cursor-pointer rounded-sm">
                         <img :src="product.image" :alt="product.name" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                        <div v-if="product.sale" class="absolute top-4 left-4 bg-white text-black text-[9px] font-black px-2 py-1 uppercase italic">Sale</div>
+                        <div v-if="product.sale" class="absolute top-4 left-4 bg-white text-black text-[9px] font-black px-2 py-1 uppercase italic shadow-sm">Sale</div>
                         <div class="absolute inset-x-4 bottom-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all hidden md:block">
-                            <button @click="addToCart(product)" class="w-full bg-white/95 backdrop-blur py-4 text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition">Add To Cart</button>
+                            <button @click="addToCart(product)" class="w-full bg-white py-4 text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition shadow-xl">Add To Cart</button>
                         </div>
                     </div>
-                    <div class="mt-auto">
+                    <div>
                         <p class="text-[9px] font-black uppercase text-gray-400 tracking-widest mb-1">Geographical Norway</p>
-                        <h3 class="text-[13px] font-semibold text-gray-900 line-clamp-2 min-h-[40px] leading-snug mb-2">{{ product.name }}</h3>
-                        <div class="flex items-center space-x-2 mb-4">
+                        <h3 class="text-[13px] font-bold text-gray-900 leading-snug mb-2">{{ product.name }}</h3>
+                        <div class="flex items-center space-x-3 mb-5">
                             <span class="text-sm font-black">{{ product.price }}€</span>
                             <span v-if="product.oldPrice" class="text-xs text-gray-400 line-through font-medium">{{ product.oldPrice }}€</span>
                         </div>
-                        <!-- Mobile Add to Cart button -->
                         <button @click="addToCart(product)" class="md:hidden w-full border border-black py-3 text-[10px] font-black uppercase tracking-widest active:bg-black active:text-white transition">Add To Cart</button>
                     </div>
                 </div>
@@ -201,10 +183,8 @@
                 <h2 class="text-[11px] font-black uppercase tracking-widest italic">Bag ({{ cartCount }})</h2>
                 <button @click="isCartOpen = false" class="p-2"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
-            <div class="flex-1 overflow-y-auto p-6 custom-scroll">
-                <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-gray-400">
-                    <p class="text-[10px] font-black uppercase tracking-widest">Your bag is empty</p>
-                </div>
+            <div class="flex-1 overflow-y-auto p-6">
+                <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-gray-400 uppercase text-[10px] font-black tracking-widest">Empty Bag</div>
                 <div v-for="item in cart" :key="item.id" class="flex items-start space-x-4 mb-8">
                     <img :src="item.image" class="w-20 h-28 object-cover">
                     <div class="flex-1">
@@ -212,9 +192,9 @@
                         <p class="text-sm font-black mb-4">{{ item.price }}€</p>
                         <div class="flex items-center space-x-4">
                             <div class="flex items-center border rounded h-8">
-                                <button @click="updateQty(item.id, -1)" class="px-3">-</button>
+                                <button @click="updateQty(item.id, -1)" class="px-3 text-xs">-</button>
                                 <span class="px-2 text-xs font-bold">{{ item.quantity }}</span>
-                                <button @click="updateQty(item.id, 1)" class="px-3">+</button>
+                                <button @click="updateQty(item.id, 1)" class="px-3 text-xs">+</button>
                             </div>
                             <button @click="removeFromCart(item.id)" class="text-[9px] font-black text-red-600 uppercase border-b border-red-600">Remove</button>
                         </div>
@@ -224,57 +204,31 @@
             <div v-if="cart.length > 0" class="p-8 border-t space-y-4">
                 <div class="flex justify-between items-center">
                     <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Total</span>
-                    <span class="text-2xl font-black">{{ cartTotal }}€</span>
+                    <span class="text-2xl font-black italic">{{ cartTotal }}€</span>
                 </div>
-                <button class="w-full bg-black text-white py-5 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-red-600 transition-all">Checkout</button>
+                <button class="w-full bg-black text-white py-5 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-red-600 transition-all">Proceed to Checkout</button>
             </div>
         </div>
     </transition>
 
     <!-- FOOTER -->
-    <footer class="bg-white border-t border-gray-200 pt-16 md:pt-24 pb-10">
-        <div class="max-w-[1600px] mx-auto px-8">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 md:gap-16 mb-16">
-                <div class="space-y-6">
-                    <div class="text-xl font-black tracking-[0.2em] italic"><span class="text-red-600">FARFETCH</span></div>
-                    <p class="text-[11px] text-gray-500 leading-relaxed font-medium uppercase tracking-wider">Official European Store. Providing technical gear since 1953.</p>
-                    <div class="space-y-3 text-[10px] font-bold uppercase tracking-widest text-gray-700">
-                        <div class="flex items-center space-x-3"><i data-lucide="map-pin" class="w-4 h-4"></i> <span>Paris, France</span></div>
-                        <div class="flex items-center space-x-3"><i data-lucide="phone" class="w-4 h-4"></i> <span>+33 1 44 55 66 77</span></div>
-                    </div>
-                </div>
-                <div>
-                    <h4 class="text-[11px] font-black uppercase tracking-[0.2em] mb-8">Customer Service</h4>
-                    <ul class="text-[10px] text-gray-500 space-y-4 font-bold uppercase tracking-widest">
-                        <li class="hover:text-red-600 cursor-pointer transition-colors">Help & Contact Us</li>
-                        <li class="hover:text-red-600 cursor-pointer transition-colors">Orders & Shipping</li>
-                        <li class="hover:text-red-600 cursor-pointer transition-colors">Returns & Refunds</li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-[11px] font-black uppercase tracking-[0.2em] mb-8">About Brand</h4>
-                    <ul class="text-[10px] text-gray-500 space-y-4 font-bold uppercase tracking-widest">
-                        <li class="hover:text-red-600 cursor-pointer transition-colors">Our Heritage</li>
-                        <li class="hover:text-red-600 cursor-pointer transition-colors">Sustainability</li>
-                        <li class="hover:text-red-600 cursor-pointer transition-colors">Careers</li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="text-[11px] font-black uppercase tracking-[0.2em] mb-8">Newsletter</h4>
-                    <div class="flex border-b border-black pb-2 mb-8">
-                        <input type="email" placeholder="YOUR EMAIL" class="bg-transparent border-none text-[10px] w-full focus:ring-0 font-bold">
-                        <button class="text-[11px] font-black uppercase hover:text-red-600 transition-colors">Join</button>
-                    </div>
-                    <div class="flex space-x-6 text-gray-400">
-                        <i data-lucide="instagram" class="w-5 h-5 hover:text-black cursor-pointer"></i>
-                        <i data-lucide="facebook" class="w-5 h-5 hover:text-black cursor-pointer"></i>
-                    </div>
-                </div>
+    <footer class="bg-white border-t border-gray-100 pt-20 pb-10">
+        <div class="max-w-[1600px] mx-auto px-8 grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
+            <div class="space-y-6">
+                <div class="text-xl font-black tracking-[0.2em] italic"><span class="text-red-600">FARFETCH</span></div>
+                <p class="text-[11px] text-gray-500 leading-relaxed font-bold uppercase tracking-wider">Official European Store. Providing technical gear since 1953.</p>
             </div>
-            <div class="pt-10 border-t border-gray-100 flex flex-col md:row justify-between items-center text-center gap-6">
-                <div class="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">&copy; 2026 FARFETCH . ALL RIGHTS RESERVED.</div>
-                <div class="flex items-center space-x-6 opacity-40 grayscale"><i data-lucide="credit-card" class="w-6 h-6"></i><span class="text-[10px] font-black italic">VISA</span><span class="text-[10px] font-black italic">MASTERCARD</span></div>
+            <div v-for="group in ['Service', 'About', 'Legal']" :key="group">
+                <h4 class="text-[11px] font-black uppercase tracking-[0.2em] mb-8">{{ group }}</h4>
+                <ul class="text-[10px] text-gray-400 space-y-4 font-bold uppercase tracking-widest">
+                    <li class="hover:text-black cursor-pointer">Help Center</li>
+                    <li class="hover:text-black cursor-pointer">Shipping</li>
+                    <li class="hover:text-black cursor-pointer">Sustainability</li>
+                </ul>
             </div>
+        </div>
+        <div class="text-center mt-20 pt-10 border-t border-gray-50">
+            <p class="text-[9px] font-black uppercase tracking-[0.3em] text-gray-300">&copy; 2026 FARFETCH . ALL RIGHTS RESERVED.</p>
         </div>
     </footer>
 
@@ -294,9 +248,16 @@
             const genderTypes = ['Womenswear', 'Menswear', 'Kidswear'];
             const subCategories = ['Sale', 'New in', 'Brands', 'Clothing', 'Shoes', 'Bags', 'Accessories', 'Jewelry', 'Lifestyle', 'Pre-owned'];
 
+            // Data for the Visual Cards in the Mega Menu
+            const clothingFeatures = [
+                { title: 'The Jacket Shop', image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=400' },
+                { title: 'Technical Parkas', image: 'https://images.unsplash.com/photo-1605518216938-7c31b7b14ad0?q=80&w=400' },
+                { title: 'New Season Knitwear', image: 'https://images.unsplash.com/photo-1620403775053-6869ec891122?q=80&w=400' }
+            ];
+
             const megaItems = {
                 clothing: ['All clothing', 'Dresses', 'Tops', 'Knitwear', 'Jackets', 'Coats', 'Skiwear'],
-                discover: ['New clothing', 'Wardrobe staples', 'Ski and après', 'Matching sets']
+                discover: ['New in clothing', 'Wardrobe staples', 'Ski and après', 'Matching sets', 'The new-season forecast']
             };
 
             const products = ref([
@@ -306,8 +267,8 @@
                 { id: 4, name: 'EXPEDITION Heavy Duty Parka', price: 189, oldPrice: 0, sale: false, image: 'https://www.twinseasons.eu/resize/expeditionlongdownparkaw86126-560dmodelfjr-ts_5063765064584.jpg/0/1100/True/fjallraven-expedition-long-down-parka-w.jpg' },
                 { id: 5, name: 'TOWER Windbreaker Black', price: 75, oldPrice: 99, sale: true, image: 'https://www.vishalmegamart.com/dw/image/v2/BGHT_PRD/on/demandware.static/-/Sites-vmm-apparel-master-catalog/default/dw726221e9/images/large/1111009451001.jpg?sw=900&sh=900' },
                 { id: 6, name: 'Technical Fleece Polar', price: 55, oldPrice: 0, sale: false, image: 'https://www.diadorautility.com/dw/image/v2/BBPK_PRD/on/demandware.static/-/Sites-utility-master/default/dwe976f608/images/hi-res/702.179457_D0217_10_HR.jpg?sw=1920' },
-                { id: 7, name: 'Classic Puffer Jacket', price: 110, oldPrice: 150, sale: true, image: 'https://www.diadorautility.com/dw/image/v2/BBPK_PRD/on/demandware.static/-/Sites-utility-master/default/dwe976f608/images/hi-res/702.179457_D0217_10_HR.jpg?sw=1920' },
-                { id: 8, name: 'Nordic Explorer Shell', price: 210, oldPrice: 0, sale: false, image: 'https://asda.scene7.com/is/image/Asda/5059196328318?hei=1026&wid=762&qlt=85&fmt=pjpg&resmode=sharp2&op_usm=1.1,0.5,0,0' },
+                { id: 7, name: 'Urban Explorer Parka', price: 155, oldPrice: 199, sale: true, image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=400' },
+                { id: 8, name: 'Summit Pro Shell', price: 210, oldPrice: 0, sale: false, image: 'https://www.jack-wolfskin.com/dw/image/v2/AAQL_PRD/on/demandware.static/-/Sites-22021_JW_Master/default/dw8fb63ea2/large/1115321_1010_1-troposphere-ins-jkt-m-night-blue.jpg?sw=1800&sh=2600' },
            ]);
 
             const cartCount = computed(() => cart.value.reduce((acc, item) => acc + item.quantity, 0));
@@ -342,7 +303,7 @@
 
             return {
                 isCartOpen, isMobileMenuOpen, activeMegaMenu, currentGender, genderTypes, subCategories, 
-                megaItems, products, cart, addToCart, removeFromCart,
+                megaItems, clothingFeatures, products, cart, addToCart, removeFromCart,
                 cartCount, cartTotal, updateQty
             };
         }
